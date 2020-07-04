@@ -63,6 +63,8 @@ ARG GO_VERSION
 ENV GO_VERSION ${GO_VERSION}
 ENV GOPATH /go
 ENV PATH /usr/local/go-faketime/bin:$GOPATH/bin:$PATH
+ENV GO111MODULE on
+ENV GOPROXY=https://goproxy.io
 
 # Add and compile tour packages
 RUN go get \
@@ -76,9 +78,11 @@ RUN go get \
 
 # Add tour packages under their old import paths (so old snippets still work)
 RUN mkdir -p $GOPATH/src/code.google.com/p/go-tour && \
-    cp -R $GOPATH/src/golang.org/x/tour/* $GOPATH/src/code.google.com/p/go-tour/ && \
-    sed -i 's_// import_// public import_' $(find $GOPATH/src/code.google.com/p/go-tour/ -name *.go) && \
-    go install \
+    cp -R $GOPATH/pkg/mod/golang.org/x/tour@v0.0.0-20200508155540-0608babe047d/* $GOPATH/src/code.google.com/p/go-tour/ && \
+    sed -i 's_// import_// public import_' $(find $GOPATH/src/code.google.com/p/go-tour/ -name *.go) 
+
+ENV GO111MODULE off
+RUN go install \
     code.google.com/p/go-tour/pic \
     code.google.com/p/go-tour/reader \
     code.google.com/p/go-tour/tree \
