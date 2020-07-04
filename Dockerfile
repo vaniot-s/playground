@@ -26,11 +26,14 @@ RUN tar --strip=1 -C /usr/local/go -vxzf /tmp/go.tar.gz
 RUN mkdir /gocache
 ENV GOCACHE /gocache
 ENV GO111MODULE on
-ENV GOPROXY=https://proxy.golang.org
+ENV GOPROXY=https://goproxy.io
 
 # Compile Go at target sandbox version and install standard library with --tags=faketime.
 WORKDIR /usr/local
-RUN git clone https://go.googlesource.com/go go-faketime && cd go-faketime && git reset --hard $GO_VERSION
+# RUN git clone https://go.googlesource.com/go go-faketime && cd go-faketime && git reset --hard $GO_VERSION
+RUN curl -sSL https://dl.google.com/go/$GO_BOOTSTRAP_VERSION.src.tar.gz -o /tmp/$GO_BOOTSTRAP_VERSION.tar.gz
+RUN tar -vxzf /tmp/$GO_BOOTSTRAP_VERSION.tar.gz -C /tmp
+RUN mv /tmp/go /usr/local/go-faketime && rm /tmp/$GO_BOOTSTRAP_VERSION.tar.gz
 WORKDIR /usr/local/go-faketime/src
 RUN ./make.bash
 ENV GOROOT /usr/local/go-faketime
@@ -41,6 +44,7 @@ FROM golang:1.14 as build-playground
 COPY go.mod /go/src/playground/go.mod
 COPY go.sum /go/src/playground/go.sum
 WORKDIR /go/src/playground
+ENV GOPROXY=https://goproxy.io
 RUN go mod download
 
 # Add and compile playground daemon
